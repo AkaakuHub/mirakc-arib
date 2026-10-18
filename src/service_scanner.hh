@@ -174,8 +174,8 @@ class ServiceScanner final : public PacketSink,
     }
 
     auto& allocator = doc->GetAllocator();
-    for (auto it = pat_->pmts.begin(); it != pat_->pmts.end(); ++it) {
-      uint16_t sid = it->first;
+    for (auto svit = sdt_->services.begin(); svit != sdt_->services.end(); ++svit) {
+      uint16_t sid = svit->first;
 
       if (!option_.sids.IsEmpty() && !option_.sids.Contain(sid)) {
         MIRAKC_ARIB_DEBUG("Ignore SID#{:04X} according to the inclusion list", sid);
@@ -184,11 +184,6 @@ class ServiceScanner final : public PacketSink,
 
       if (!option_.xsids.IsEmpty() && option_.xsids.Contain(sid)) {
         MIRAKC_ARIB_DEBUG("Ignore SID#{:04X} according to the exclusion list", sid);
-        continue;
-      }
-
-      const auto svit = sdt_->services.find(sid);
-      if (svit == sdt_->services.end()) {
         continue;
       }
 
