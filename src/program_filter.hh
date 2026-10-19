@@ -53,6 +53,7 @@ struct ProgramFilterOption final {
   ts::MilliSecond end_margin = 0;
   std::optional<ts::Time> wait_until = std::nullopt;  // JST
   bool pre_streaming = false;                         // disabled
+  bool sync_clock = false;
 };
 
 class ProgramFilter final : public PacketSink, public ts::TableHandlerInterface {
@@ -61,8 +62,8 @@ class ProgramFilter final : public PacketSink, public ts::TableHandlerInterface 
     clock_pid_ = option_.clock_pid;
     clock_pcr_ = option_.clock_pcr;
     clock_time_ = option_.clock_time;
-    clock_pcr_ready_ = true;
-    clock_time_ready_ = true;
+    clock_pcr_ready_ = !option_.sync_clock;
+    clock_time_ready_ = !option_.sync_clock;
     MIRAKC_ARIB_PROGRAM_FILTER_DEBUG(
         "Initial clock: PCR#{:04X}, {:011X} ({})", clock_pid_, clock_pcr_, clock_time_);
     MIRAKC_ARIB_PROGRAM_FILTER_DEBUG("Video tags: {}", fmt::join(option_.video_tags, ", "));
