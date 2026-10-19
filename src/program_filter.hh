@@ -104,6 +104,12 @@ class ProgramFilter final : public PacketSink, public ts::TableHandlerInterface 
 
   bool HandlePacket(const ts::TSPacket& packet) override {
     MIRAKC_ARIB_ASSERT(sink_ != nullptr);
+    if (packet.getPID() == clock_pid_ && packet.hasPCR() &&
+        packet.getPCR() != ts::INVALID_PCR && packet.getDiscontinuityIndicator()) {
+      MIRAKC_ARIB_PROGRAM_FILTER_INFO("PCR discontinuity, need resync");
+      clock_pcr_ready_ = false;
+      clock_time_ready_ = false;
+    }
     demux_.feedPacket(packet);
     switch (state_) {
       case kWaitReady:
