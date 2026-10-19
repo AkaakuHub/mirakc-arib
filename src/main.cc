@@ -88,7 +88,7 @@ Usage:
   mirakc-arib collect-logos [<file>]
   mirakc-arib filter-service --sid=<sid> [<file>]
   mirakc-arib filter-program --sid=<sid> --eid=<eid>
-    --clock-pid=<pid> --clock-pcr=<pcr> --clock-time=<unix-time-ms>
+    (--sync-clock | --clock-pid=<pid> --clock-pcr=<pcr> --clock-time=<unix-time-ms>)
     [--audio-tags=<tag>...] [--video-tags=<tag>...]
     [--start-margin=<ms>] [--end-margin=<ms>] [--wait-until=<unix-time-ms>]
     [--pre-streaming] [<file>]
@@ -520,7 +520,7 @@ Program filter
 
 Usage:
   mirakc-arib filter-program --sid=<sid> --eid=<eid>
-    --clock-pid=<pid> --clock-pcr=<pcr> --clock-time=<unix-time-ms>
+    (--sync-clock | --clock-pid=<pid> --clock-pcr=<pcr> --clock-time=<unix-time-ms>)
     [--audio-tags=<tag>...] [--video-tags=<tag>...]
     [--start-margin=<ms>] [--end-margin=<ms>] [--wait-until=<unix-time-ms>]
     [--pre-streaming] [<file>]
@@ -537,6 +537,9 @@ Options:
 
   --clock-pid=<pid>
     PID of PCR for the service.
+
+  --sync-clock
+    Synchronize the clock from PCR and TOT in the input stream.
 
   --clock-pcr=<pcr>
     27MHz, 42bits PCR value.
@@ -1185,6 +1188,7 @@ void LoadOption(const Args& args, ProgramFilterOption* opt) {
   static const std::string kClockPid = "--clock-pid";
   static const std::string kClockPcr = "--clock-pcr";
   static const std::string kClockTime = "--clock-time";
+  static const std::string kSyncClock = "--sync-clock";
   static const std::string kAudioTags = "--audio-tags";
   static const std::string kVideoTags = "--video-tags";
   static const std::string kStartMargin = "--start-margin";
@@ -1194,10 +1198,13 @@ void LoadOption(const Args& args, ProgramFilterOption* opt) {
 
   opt->sid = static_cast<uint16_t>(args.at(kSid).asLong());
   opt->eid = static_cast<uint16_t>(args.at(kEid).asLong());
-  opt->clock_pid = static_cast<uint16_t>(args.at(kClockPid).asLong());
-  opt->clock_pcr = args.at(kClockPcr).asInt64();
-  opt->clock_time =
-      ConvertUnixTimeToJstTime(static_cast<ts::MilliSecond>(args.at(kClockTime).asInt64()));
+  opt->sync_clock = args.at(kSyncClock).asBool();
+  if (!opt->sync_clock) {
+    opt->clock_pid = static_cast<uint16_t>(args.at(kClockPid).asLong());
+    opt->clock_pcr = args.at(kClockPcr).asInt64();
+    opt->clock_time =
+        ConvertUnixTimeToJstTime(static_cast<ts::MilliSecond>(args.at(kClockTime).asInt64()));
+  }
   LoadComponentTags(args, kAudioTags, &opt->audio_tags);
   LoadComponentTags(args, kVideoTags, &opt->video_tags);
   if (args.at(kStartMargin)) {
